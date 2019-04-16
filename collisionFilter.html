@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>cannon.js - collisionfilter demo</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  </head>
+  <body>
+    <!--todas las librerias que necesitamos para correr el codigo-->
+    <script src="build/cannon.js"></script>
+    <script src="build/cannon.demo.js"></script>
+    <script src="libs/dat.gui.js"></script>
+    <script src="libs/Three.js"></script>
+    <script src="libs/TrackballControls.js"></script>
+    <script src="libs/Detector.js"></script>
+    <script src="libs/Stats.js"></script>
+    <script src="libs/smoothie.js"></script>
+    <script>
+
+        var demo = new CANNON.Demo();
+        var size = 1;//tamaño de los objetos
+        var mass = 1;//la masa que le asignamos a los objetos como no hay gravedad entonces no se alcanza a notar
+
+       // Grupos de filtros de colisión - deben ser potencias de 2!
+        var GROUP1 = 1;
+        var GROUP2 = 2;
+        var GROUP3 = 4;
+
+        demo.addScene("filter",function(){
+            var world = demo.getWorld();// creamos una variable mundo y le asignamos un mundo
+            world.gravity.set(0,0,0); // no se le aplica gravedad en ninguna coordenada a la escena
+            world.broadphase = new CANNON.NaiveBroadphase(); 
+
+            world.solver.iterations = 4; // el numero de iteraciones entre los objetos en el mundo
+          
+            // esfera izquierda le asignamos un tamaño
+            var sphereShape = new CANNON.Sphere(size);
+            //le damos unos parametros a la esfera
+            var sphereBody = new CANNON.Body({
+                //masa de la esfera
+                mass: mass,
+                //posicion el espacio de la esfera
+                position: new CANNON.Vec3(5,0,0),
+                //velocidad en el eje x
+                velocity: new CANNON.Vec3(-5,0,0),
+                collisionFilterGroup: GROUP1, //ponemos a esfera en el grupo 1
+                collisionFilterMask: GROUP2, //solamente puede chocar con el grupo dos, el cuadrado esta en el grupo dos
+                shape: sphereShape //se le asigna la forma al objeto con el tamaño que le asignamos 
+            });
+
+            // cuadrado objeto del medio
+            var boxBody = new CANNON.Body({
+              //la masa o el peso que le damos al objeto
+                mass: mass,
+                //la forma que el damos a la figura, un cuadrado size vale 1
+                shape: new CANNON.Box(new CANNON.Vec3(size,size,size)),
+                collisionFilterGroup: GROUP2, // ponemos el cuadrado en el grupo 2
+                collisionFilterMask:  GROUP1 | GROUP3 //el cuadrado puede chocar con las dos esferas
+            });
+
+          
+           //esfera derecha
+            var cylinderBody = new CANNON.Body({
+              // masa que le asignamos a objeto
+                mass: mass,
+                // le damos la transformacion al cuerpo a la forma de una esfera
+                shape: sphereShape,
+                //le damos la posicion el espacio
+                position: new CANNON.Vec3(-5,0,0),
+                // le damos una velocidad mayor a la anterior esfera 
+                velocity: new CANNON.Vec3(7,0, 0),
+                collisionFilterGroup: GROUP3, //ponemos la esfera en el grupo 3
+                collisionFilterMask:  GROUP2 // esta esfera solo puede chocar con el cuadrado o grupo 2
+            });
+
+            // agregamos cada cuerpo y su forma al mundo o escena
+            world.addBody(sphereBody);
+            world.addBody(boxBody);
+            world.addBody(cylinderBody);
+            demo.addVisual(sphereBody);
+            demo.addVisual(boxBody);
+            demo.addVisual(cylinderBody);
+        });
+        //ejecutamos el codigo
+        demo.start();
+
+    </script>
+  </body>
+</html>
